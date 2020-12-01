@@ -116,6 +116,9 @@ struct windows_request_context : http::details::_http_server_context
     // Cancel request io completion callback function.
     void cancel_request_io_completion(DWORD error_code, DWORD bytes_read);
 
+    // Read certificate info
+    std::unique_ptr<http::details::_http_certificate_info> read_certificate_info();
+
     // TCE that indicates the completion of response
     // Workaround for ppl task_completion_event bug.
     std::mutex m_responseCompletedLock;

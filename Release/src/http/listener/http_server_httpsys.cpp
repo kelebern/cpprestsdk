@@ -1235,6 +1235,28 @@ void windows_request_context::cancel_request_io_completion(DWORD, DWORD)
     m_response_completed.set_exception(m_except_ptr);
 }
 
+std::unique_ptr<http::details::_http_certificate_info> windows_request_context::read_certificate_info()
+{
+    auto* pServer = static_cast<http_windows_server*>(http_server_api::server_api());
+
+    std::unique_ptr<_http_certificate_info> certificate_info = std::make_unique<_http_certificate_info>();
+    DWORD error_code = HttpReceiveClientCertificate(pServer->m_hRequestQueue,
+                                                    m_request->ConnectionId,
+                                                    0,
+                                                    &(certificate_info->m_certificateInfo),
+                                                    sizeof(HTTP_SSL_CLIENT_CERT_INFO),
+                                                    NULL,
+                                                    &m_overlapped);
+
+    if (error_code != NO_ERROR)
+    {
+        cancel_request(std::make_exception_ptr(http_exception(error_code)));
+        return std::unique_ptr<_http_certificate_info>(nullptr);
+    }
+
+    return certificate_info;
+}
+
 void windows_request_context::cancel_request(std::exception_ptr except_ptr)
 {
     auto* pServer = static_cast<http_windows_server*>(http_server_api::server_api());

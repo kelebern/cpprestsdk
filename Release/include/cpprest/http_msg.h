@@ -27,6 +27,10 @@
 #include <system_error>
 #include <vector>
 
+#if defined(_WIN32) && !defined(CPPREST_FORCE_HTTP_LISTENER_ASIO)
+#include <http.h>
+#endif
+
 namespace web
 {
 namespace http
@@ -481,12 +485,31 @@ protected:
 };
 
 /// <summary>
+/// Implementation dependent certificate info.
+/// Currently available for httpsys server implementation only.
+/// </summary>
+class _http_certificate_info
+{
+public:
+#if defined(_WIN32) && !defined(CPPREST_FORCE_HTTP_LISTENER_ASIO)
+    HTTP_SSL_CLIENT_CERT_INFO m_certificateInfo;
+#endif
+
+    _http_certificate_info() { }
+    virtual ~_http_certificate_info() { }
+
+private:
+};
+
+/// <summary>
 /// Base structure for associating internal server information
 /// with an HTTP request/response.
 /// </summary>
 class _http_server_context
 {
 public:
+    virtual std::unique_ptr<_http_certificate_info> read_certificate_info() { return nullptr; }
+
     _http_server_context() {}
     virtual ~_http_server_context() {}
 
